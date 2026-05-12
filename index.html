@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pipeline Status Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #2c3e50; }
+    .success { color: green; }
+    .failure { color: red; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>Pipeline Status Dashboard</h1>
+  <table id="pipelineTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>Conclusion</th>
+        <th>Created At</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function loadPipelineStatus() {
+      try {
+        const res = await fetch('http://localhost:5000/pipeline-status');
+        const data = await res.json();
+        const runs = data.workflow_runs || [];
+        const tbody = document.querySelector('#pipelineTable tbody');
+        tbody.innerHTML = '';
+
+        runs.slice(0, 5).forEach(run => {
+          const conclusionClass = run.conclusion === 'success' ? 'success' : 'failure';
+          const row = `<tr>
+            <td>${run.id}</td>
+            <td>${run.status}</td>
+            <td class="${conclusionClass}">${run.conclusion || 'N/A'}</td>
+            <td>${new Date(run.created_at).toLocaleString()}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+      } catch (err) {
+        document.querySelector('#pipelineTable tbody').innerHTML =
+          `<tr><td colspan="4">Error loading pipeline status</td></tr>`;
+      }
+    }
+
+    loadPipelineStatus();
+  </script>
+</body>
+</html>
